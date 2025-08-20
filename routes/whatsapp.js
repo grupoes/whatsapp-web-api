@@ -4,36 +4,50 @@ const router = express.Router();
 const { Client, LocalAuth } = require("whatsapp-web.js");
 const qrcode = require("qrcode-terminal");
 
+require("dotenv").config();
+
+const CLIENT = process.env.CLIENT;
+
+let client; // Declarar la variable client fuera del if-els
+
 // Inicializar el cliente de WhatsApp
-const client = new Client({
-  authStrategy: new LocalAuth(),
-  puppeteer: {
-    executablePath: "/usr/bin/google-chrome-stable",
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-accelerated-2d-canvas",
-      "--no-first-run",
-      "--no-zygote",
-      "--disable-gpu",
-      "--disable-web-security",
-      "--disable-features=VizDisplayCompositor",
-      "--disable-background-timer-throttling",
-      "--disable-backgrounding-occluded-windows",
-      "--disable-renderer-backgrounding",
-      "--disable-extensions",
-      "--disable-plugins",
-      "--disable-default-apps",
-      "--disable-sync",
-      "--metrics-recording-only",
-      "--no-default-browser-check",
-      "--mute-audio",
-      "--disable-background-networking",
-    ],
-  },
-});
+if (CLIENT === "development") {
+  client = new Client({
+    puppeteer: {
+      headless: true,
+    },
+  });
+} else {
+  client = new Client({
+    authStrategy: new LocalAuth(),
+    puppeteer: {
+      executablePath: "/usr/bin/google-chrome-stable",
+      headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--no-first-run",
+        "--no-zygote",
+        "--disable-gpu",
+        "--disable-web-security",
+        "--disable-features=VizDisplayCompositor",
+        "--disable-background-timer-throttling",
+        "--disable-backgrounding-occluded-windows",
+        "--disable-renderer-backgrounding",
+        "--disable-extensions",
+        "--disable-plugins",
+        "--disable-default-apps",
+        "--disable-sync",
+        "--metrics-recording-only",
+        "--no-default-browser-check",
+        "--mute-audio",
+        "--disable-background-networking",
+      ],
+    },
+  });
+}
 
 let receivedMessages = []; // Arreglo para almacenar los mensajes recibidos
 
@@ -54,6 +68,7 @@ client.on("message_create", (message) => {
     from: message.from,
     body: message.body,
     timestamp: message.timestamp,
+    content: message,
   });
 
   // Ejemplo de respuesta a un comando específico
